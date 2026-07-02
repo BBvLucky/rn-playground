@@ -6,7 +6,7 @@ import {
   Button,
   ScrollView,
 } from 'react-native';
-import NativeStorageTest from './specs/NativeStorageTest';
+import NativeStorageTest from '../../specs/NativeStorageTest';
 
 
 
