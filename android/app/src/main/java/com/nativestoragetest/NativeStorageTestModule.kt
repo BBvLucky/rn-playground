@@ -2,41 +2,31 @@ package com.nativestoragetest
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.nativestoragetest.NativeStorageTestSpec
 import com.facebook.react.bridge.ReactApplicationContext
+import androidx.core.content.edit
 
 class NativeStorageTestModule(reactContext: ReactApplicationContext) : NativeStorageTestSpec(reactContext) {
 
-  override fun getName() = NAME
+  private val prefs: SharedPreferences by lazy {
+    reactApplicationContext.getSharedPreferences(
+      "my_prefs",
+      Context.MODE_PRIVATE
+    )
+  }
 
   override fun set(value: String, key: String) {
-    val sharedPref = getReactApplicationContext().getSharedPreferences("my_prefs", Context.MODE_PRIVATE)
-    val editor = sharedPref.edit()
-    editor.putString(key, value)
-    editor.apply()
+    prefs.edit { putString(key, value) }
   }
 
-  override fun get(key: String): String? {
-    val sharedPref = getReactApplicationContext().getSharedPreferences("my_prefs", Context.MODE_PRIVATE)
-    val username = sharedPref.getString(key, null)
-    return username.toString()
+  override fun get(key: String?): String?{
+    return prefs.getString(key, null)
   }
 
-  override fun remove(key: String) {
-    val sharedPref = getReactApplicationContext().getSharedPreferences("my_prefs", Context.MODE_PRIVATE)
-    val editor = sharedPref.edit()
-    editor.remove(key)
-    editor.apply()
+  override fun remove(key: String?) {
+    prefs.edit { remove(key) }
   }
 
   override fun clear() {
-    val sharedPref = getReactApplicationContext().getSharedPreferences("my_prefs", Context.MODE_PRIVATE)
-    val editor = sharedPref.edit()
-    editor.clear()
-    editor.apply()
-  }
-
-  companion object {
-    const val NAME = "NativeStorageTest"
+    prefs.edit { clear() }
   }
 }

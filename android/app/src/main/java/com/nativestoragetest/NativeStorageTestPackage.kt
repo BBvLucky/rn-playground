@@ -9,7 +9,7 @@ import com.facebook.react.module.model.ReactModuleInfoProvider
 class NativeStorageTestPackage : BaseReactPackage() {
 
   override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? =
-    if (name == NativeStorageTestModule.NAME) {
+    if (name == NativeStorageTestSpec.NAME) {
       NativeStorageTestModule(reactContext)
     } else {
       null
@@ -17,9 +17,9 @@ class NativeStorageTestPackage : BaseReactPackage() {
 
   override fun getReactModuleInfoProvider() = ReactModuleInfoProvider {
     mapOf(
-      NativeStorageTestModule.NAME to ReactModuleInfo(
-        name = NativeStorageTestModule.NAME,
-        className = NativeStorageTestModule.NAME,
+      NativeStorageTestSpec.NAME to ReactModuleInfo(
+        name = NativeStorageTestSpec.NAME,
+        className = NativeStorageTestSpec.NAME,
         canOverrideExistingModule = false,
         needsEagerInit = false,
         isCxxModule = false,
