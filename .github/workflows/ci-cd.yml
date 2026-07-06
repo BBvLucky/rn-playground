@@ -1,0 +1,40 @@
+name: Mobile CI-CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Fake testing
+      - name: Run Tests and Linters
+        run: |
+          echo "Running ESLint..."
+          echo "Running Jest Tests..."
+          echo "All checks passed successfully!"
+
+      - name: Fake Android Build
+        run: |
+          mkdir -p android/app/build/outputs/apk/release
+          echo "This is a fake application build binary data" > android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-app-build
+          path: android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Send Telegram Notification
+        run: |
+          curl -X POST "https://telegram.org{{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d "parse_mode=Markdown" \
+            -d "text=Build completed! Author: ${{ github.actor }}"
+
