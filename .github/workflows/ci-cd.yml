@@ -20,7 +20,6 @@ jobs:
       - name: install dependencies
         run: npm ci
 
-      # Fake testing
       - name: run linter
         run: npm run lint
 
@@ -31,7 +30,7 @@ jobs:
           java-version: '17'
 
       - name: setup gradle cache
-        uses: actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v3
 
       - name: build APK
         run: |
