@@ -1,8 +1,6 @@
 name: Mobile CI-CD Pipeline
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -10,34 +8,49 @@ jobs:
   build-and-notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: checkout repository
         uses: actions/checkout@v4
 
-      # Fake testing
-      - name: Run Tests and Linters
-        run: |
-          echo "Running ESLint..."
-          echo "Running Jest Tests..."
-          echo "All checks passed successfully!"
+      - name: setup node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      - name: install dependencies
+        run: npm ci
 
-      - name: Fake Android Build
-        run: |
-          mkdir -p android/app/build/outputs/apk/release
-          echo "This is a fake application build binary data" > android/app/build/outputs/apk/release/app-release.apk
+      - name: run linter
+        run: npm run lint
 
-      - name: Upload Artifact
+      - name: setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: setup gradle cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: build APK
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+
+      - name: upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-app-build
           path: android/app/build/outputs/apk/release/app-release.apk
 
-      - name: Send Telegram Notification
+      - name: send telegram notification
         env:
           TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           AUTHOR: ${{ github.actor }}
+          BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          TEXT="Build completed! Author: ${AUTHOR}"
+          TEXT="Build completed! Author: ${AUTHOR}%0AAPK Link: ${BUILD_URL}"
           curl -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
             -d "chat_id=${CHAT_ID}" \
             -d "text=${TEXT}"
