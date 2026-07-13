@@ -1,21 +1,12 @@
-import { useEffect, useState, type JSX } from 'react';
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  Button,
-  ScrollView,
-} from 'react-native';
+import {type JSX, useEffect, useState} from 'react';
+import {Button, ScrollView, StyleSheet, Text, TextInput} from 'react-native';
+
 import NativeStorageTest from '../../specs/NativeStorageTest';
-
-
 
 function App(): JSX.Element {
   const [value, setValue] = useState<string | null>(null);
 
-  const [editingValue, setEditingValue] = useState<string | null>(
-    null,
-  );
+  const [editingValue, setEditingValue] = useState<string | null>(null);
 
   useEffect(() => {
     const storedValue = NativeStorageTest?.get('itemKey');
@@ -40,7 +31,7 @@ function App(): JSX.Element {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ flex: 1, justifyContent: 'center' }}>
+    <ScrollView contentContainerStyle={{flex: 1, justifyContent: 'center'}}>
       <Text style={styles.text}>
         Current stored value is: {value ?? 'No Value'}
       </Text>
