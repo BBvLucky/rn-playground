@@ -7,7 +7,10 @@
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "test": "jest",
+    "init:dev": "node -e \"require('fs').copyFileSync('.env.dev', '.env')\" && cd android && gradlew clean && cd ..",
+    "init:qa": "node -e \"require('fs').copyFileSync('.env.qa', '.env')\" && cd android && gradlew clean && cd ..",
+    "init:prod": "node -e \"require('fs').copyFileSync('.env.prod', '.env')\" && cd android && gradlew clean && cd .."
   },
   "codegenConfig": {
     "name": "NativeStorageTestSpec",
@@ -21,6 +24,7 @@
     "@react-native/new-app-screen": "0.86.0",
     "react": "19.2.3",
     "react-native": "0.86.0",
+    "react-native-config": "^1.6.1",
     "react-native-safe-area-context": "^5.8.0"
   },
   "devDependencies": {

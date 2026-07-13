@@ -2,7 +2,7 @@ name: Mobile CI-CD Pipeline
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build-and-notify:
@@ -16,41 +16,71 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-      
+
       - name: install dependencies
         run: npm ci
 
       - name: run linter
         run: npm run lint
 
-      # - name: setup JDK
-      #   uses: actions/setup-java@v4
-      #   with:
-      #     distribution: 'zulu'
-      #     java-version: '17'
+      - name: determine environment
+        id: check_env
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "Last commit message: $COMMIT_MSG"
 
-      # - name: setup gradle cache
-      #   uses: gradle/actions/setup-gradle@v3
+          if [[ "$COMMIT_MSG" == *"[ciqa]"* ]]; then
+            echo "env_type=qa" >> $GITHUB_OUTPUT
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          elif [[ "$COMMIT_MSG" == *"[ciprod]"* ]]; then
+            echo "env_type=prod" >> $GITHUB_OUTPUT
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          else
+            echo "env_type=none" >> $GITHUB_OUTPUT
+            echo "should_build=false" >> $GITHUB_OUTPUT
+          fi
 
-      # - name: build APK
-      #   run: |
-      #     cd android
-      #     ./gradlew assembleRelease --no-daemon
+      - name: init environment file
+        if: steps.check_env.outputs.should_build == 'true'
+        run: |
+          ENV=${{ steps.check_env.outputs.env_type }}
+          echo "init $ENV"
+          npm run init:$ENV
 
-      # - name: upload artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: android-app-build
-      #     path: android/app/build/outputs/apk/release/app-release.apk
+      - name: setup JDK
+        if: steps.check_env.outputs.should_build == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
-      # - name: send telegram notification
-      #   env:
-      #     TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-      #     CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      #     AUTHOR: ${{ github.actor }}
-      #     BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      #   run: |
-      #     TEXT="Build completed! Author: ${AUTHOR}%0AAPK Link: ${BUILD_URL}"
-      #     curl -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
-      #       -d "chat_id=${CHAT_ID}" \
-      #       -d "text=${TEXT}"
+      - name: setup gradle cache
+        if: steps.check_env.outputs.should_build == 'true'
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: build APK
+        if: steps.check_env.outputs.should_build == 'true'
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+
+      - name: upload artifact
+        if: steps.check_env.outputs.should_build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-app-${{ steps.check_env.outputs.env_type }}
+          path: android/app/build/outputs/apk/*/release/*.apk
+
+      - name: send telegram notification
+        if: steps.check_env.outputs.should_build == 'true'
+        env:
+          TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          AUTHOR: ${{ github.actor }}
+          BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ENV_NAME: ${{ steps.check_env.outputs.env_type }}
+        run: |
+          TEXT="${ENV_NAME}-build completed! Author: ${AUTHOR}%0AAPK Link: ${BUILD_URL}"
+          curl -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
+            -d "chat_id=${CHAT_ID}" \
+            -d "text=${TEXT}"
