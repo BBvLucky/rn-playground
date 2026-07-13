@@ -1,6 +1,10 @@
+import java.util.Properties
+
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+
+apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -105,6 +109,46 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+
+    flavorDimensions "environment"
+
+    productFlavors {
+        dev {
+            dimension "environment"
+            applicationIdSuffix ".dev"
+            resValue "string", "app_name", "Playground dev"
+        }
+        qa {
+            dimension "environment"
+            applicationIdSuffix ".qa"
+            resValue "string", "app_name", "Playground QA"
+        }
+        prod {
+            dimension "environment"
+            resValue "string", "app_name", "Playground"
+        }
+    }
+
+    def envFile = rootProject.file("../../.env")
+    def flavorFromEnv = "dev"
+
+    if (envFile.exists()) {
+        def envProperties = new Properties()
+        envFile.withInputStream { envProperties.load(it) }
+
+        def envName = envProperties.getProperty("ENV_NAME")?.toLowerCase()
+    
+    if (envName == "qa") {
+        flavorFromEnv = "qa"
+    } else if (envName == "prod") {
+        flavorFromEnv = "prod"
+        }
+    }
+
+    project.ext.react = [
+        bundleInDevDebug: false,
+        flavorSelection: flavorFromEnv
+    ]
 }
 
 dependencies {
