@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: setup node.js
         uses: actions/setup-node@v4
@@ -26,7 +28,9 @@ jobs:
       - name: determine environment
         id: check_env
         run: |
-          COMMIT_MSG=$(git log -1 --pretty=%B)
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          COMMIT_MSG=$(git log -1 --pretty=%B $HEAD_SHA)
           echo "Last commit message: $COMMIT_MSG"
 
           if [[ "$COMMIT_MSG" == *"[ciqa]"* ]]; then

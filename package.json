@@ -9,9 +9,9 @@
     "start": "react-native start",
     "test": "jest",
     "prepare": "husky",
-    "init:dev": "node -e \"require('fs').copyFileSync('.env.dev', '.env')\" && cd android && gradlew clean && cd ..",
-    "init:qa": "node -e \"require('fs').copyFileSync('.env.qa', '.env')\" && cd android && gradlew clean && cd ..",
-    "init:prod": "node -e \"require('fs').copyFileSync('.env.prod', '.env')\" && cd android && gradlew clean && cd .."
+    "init:dev": "node -e \"require('fs').copyFileSync('.env.dev', '.env')\"",
+    "init:qa": "node -e \"require('fs').copyFileSync('.env.qa', '.env')\"",
+    "init:prod": "node -e \"require('fs').copyFileSync('.env.prod', '.env')\""
   },
   "codegenConfig": {
     "name": "NativeStorageTestSpec",
