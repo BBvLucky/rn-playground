@@ -68,6 +68,14 @@ jobs:
           cd android
           ./gradlew assembleRelease --no-daemon
 
+      - name: setup Ruby and Bundler
+        if: steps.check_env.outputs.env_type == 'qa'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: android
+
       - name: upload to Firebase
         if: steps.check_env.outputs.env_type == 'qa'
         env:
@@ -75,8 +83,6 @@ jobs:
           FIREBASE_APP_ID_QA: ${{ secrets.FIREBASE_APP_ID_QA }}
         run: |
           cd android
-          gem install bundler
-          bundle install
           bundle exec fastlane distribute_qa
 
       - name: send telegram notification
