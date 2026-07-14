@@ -76,7 +76,6 @@ jobs:
         run: |
           sudo gem install fastlane -N
           cd android
-          fastlane add_plugin firebase_app_distribution
           fastlane distribute_qa
 
       - name: send telegram notification
