@@ -74,9 +74,10 @@ jobs:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           FIREBASE_APP_ID_QA: ${{ secrets.FIREBASE_APP_ID_QA }}
         run: |
-          sudo gem install fastlane -N
           cd android
-          fastlane distribute_qa
+          gem install bundler
+          bundle install
+          bundle exec fastlane distribute_qa
 
       - name: send telegram notification
         if: steps.check_env.outputs.should_build == 'true'
