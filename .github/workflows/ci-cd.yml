@@ -68,12 +68,15 @@ jobs:
           cd android
           ./gradlew assembleRelease --no-daemon
 
-      - name: upload artifact
-        if: steps.check_env.outputs.should_build == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-app-${{ steps.check_env.outputs.env_type }}
-          path: android/app/build/outputs/apk/*/release/*.apk
+      - name: upload to Firebase
+        if: steps.check_env.outputs.env_type == 'qa'
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          FIREBASE_APP_ID_QA: ${{ secrets.FIREBASE_APP_ID_QA }}
+        run: |
+          cd android
+          bundle exec fastlane add_plugin firebase_app_distribution
+          bundle exec fastlane distribute_qa
 
       - name: send telegram notification
         if: steps.check_env.outputs.should_build == 'true'
@@ -81,7 +84,7 @@ jobs:
           TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           AUTHOR: ${{ github.actor }}
-          BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          BUILD_URL: 'https://console.firebase.google.com/project/playground-de524/appdistribution/app/android:com.playground.qa/releases'
           ENV_NAME: ${{ steps.check_env.outputs.env_type }}
         run: |
           TEXT="${ENV_NAME}-build completed! Author: ${AUTHOR}%0AAPK Link: ${BUILD_URL}"
