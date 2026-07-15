@@ -1,0 +1,16 @@
+default_platform(:android)
+
+platform :android do
+  desc "qa release for firebase app distribution"
+  lane :distribute_qa do
+    apk_path = File.expand_path("../../app/build/outputs/apk/qa/release/app-qa-release.apk", __FILE__)
+
+    firebase_app_distribution(
+      app: ENV["FIREBASE_APP_ID_QA"],
+      groups: "qa-team",
+
+      android_artifact_type: "APK",
+      apk_path: apk_path
+    )
+  end
+end
