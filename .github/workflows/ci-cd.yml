@@ -83,6 +83,9 @@ jobs:
           FIREBASE_APP_ID_QA: ${{ secrets.FIREBASE_APP_ID_QA }}
         run: |
           cd android
+          echo "===== actual apk dir ====="
+          find app/build/outputs/apk/ -name "*.apk"
+          echo "=========================="
           bundle exec fastlane distribute_qa
 
       - name: send telegram notification
