@@ -65,8 +65,9 @@ jobs:
       - name: build APK
         if: steps.check_env.outputs.should_build == 'true'
         run: |
+          ENV=${{ steps.check_env.outputs.env_type }}
           cd android
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew "assemble${ENV^}Release" --no-daemon
 
       - name: setup Ruby and Bundler
         if: steps.check_env.outputs.env_type == 'qa'
