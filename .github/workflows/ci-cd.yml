@@ -61,6 +61,7 @@ jobs:
               echo "env_type=none" >> $GITHUB_OUTPUT
               echo "should_build=false" >> $GITHUB_OUTPUT
             fi
+          fi
 
       - name: init environment file
         if: steps.check_env.outputs.should_build == 'true'
