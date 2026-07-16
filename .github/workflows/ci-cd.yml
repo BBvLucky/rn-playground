@@ -89,7 +89,7 @@ jobs:
           ./gradlew "assemble${ENV^}Release" --no-daemon
 
       - name: setup Ruby and Bundler
-        if: steps.check_env.outputs.env_type == 'qa'
+        if: steps.check_env.outputs.should_build == 'true'
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
@@ -97,13 +97,13 @@ jobs:
           working-directory: android
 
       - name: upload to Firebase
-        if: steps.check_env.outputs.env_type == 'qa'
+        if: steps.check_env.outputs.should_build == 'true'
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           FIREBASE_APP_ID_QA: ${{ secrets.FIREBASE_APP_ID_QA }}
         run: |
           cd android
-          bundle exec fastlane distribute_qa
+          bundle exec fastlane distribute env:${{ steps.check_env.outputs.env_type }}
 
       - name: send telegram notification
         if: steps.check_env.outputs.should_build == 'true'
@@ -111,9 +111,14 @@ jobs:
           TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           AUTHOR: ${{ github.actor }}
-          BUILD_URL: 'https://console.firebase.google.com/project/playground-de524/appdistribution/app/android:com.playground.qa/releases'
           ENV_NAME: ${{ steps.check_env.outputs.env_type }}
         run: |
+          if [[ "$ENV_NAME" == "prod" ]]; then
+            PACKAGE="com.playground"
+          else
+            PACKAGE="com.playground.qa"
+          fi
+          BUILD_URL="https://console.firebase.google.com/project/playground-de524/appdistribution/app/android:${PACKAGE}/releases"
           TEXT="${ENV_NAME}-build completed! Author: ${AUTHOR}%0AAPK Link: ${BUILD_URL}"
           curl -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
             -d "chat_id=${CHAT_ID}" \

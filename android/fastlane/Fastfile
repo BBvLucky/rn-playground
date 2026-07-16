@@ -1,13 +1,16 @@
 default_platform(:android)
 
 platform :android do
-  desc "qa release for firebase app distribution"
-  lane :distribute_qa do
-    apk_path = File.expand_path("../../app/build/outputs/apk/qa/release/app-qa-release.apk", __FILE__)
+  desc "distribute app to Firebase"
+  lane :distribute do |options|
+    env = options[:env]
+
+    apk_path = File.expand_path("../../app/build/outputs/apk/#{env}/release/app-#{env}-release.apk", __FILE__)
+    app_id = env == "qa" ? ENV["FIREBASE_APP_ID_QA"] : ENV["FIREBASE_APP_ID_PROD"]
 
     firebase_app_distribution(
-      app: ENV["FIREBASE_APP_ID_QA"],
-      groups: "qa-team",
+      app: ENV["FIREBASE_APP_ID_#{env.upcase}"],
+      groups: "#{env}-release",
 
       android_artifact_type: "APK",
       apk_path: apk_path
