@@ -3,6 +3,20 @@ name: Mobile CI-CD Pipeline
 on:
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Which environment to build and distribute'
+        required: true
+        type: choice
+        options:
+          - qa
+          - prod
+        default: qa
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   build-and-notify:
@@ -28,20 +42,25 @@ jobs:
       - name: determine environment
         id: check_env
         run: |
-          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-
-          COMMIT_MSG=$(git log -1 --pretty=%B $HEAD_SHA)
-          echo "Last commit message: $COMMIT_MSG"
-
-          if [[ "$COMMIT_MSG" == *"[ciqa]"* ]]; then
-            echo "env_type=qa" >> $GITHUB_OUTPUT
-            echo "should_build=true" >> $GITHUB_OUTPUT
-          elif [[ "$COMMIT_MSG" == *"[ciprod]"* ]]; then
-            echo "env_type=prod" >> $GITHUB_OUTPUT
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "env_type=${{ inputs.environment }}" >> $GITHUB_OUTPUT
             echo "should_build=true" >> $GITHUB_OUTPUT
           else
-            echo "env_type=none" >> $GITHUB_OUTPUT
-            echo "should_build=false" >> $GITHUB_OUTPUT
+            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+            COMMIT_MSG=$(git log -1 --pretty=%B $HEAD_SHA)
+            echo "Last commit message: $COMMIT_MSG"
+
+            if [[ "$COMMIT_MSG" == *"[ciqa]"* ]]; then
+              echo "env_type=qa" >> $GITHUB_OUTPUT
+              echo "should_build=true" >> $GITHUB_OUTPUT
+            elif [[ "$COMMIT_MSG" == *"[ciprod]"* ]]; then
+              echo "env_type=prod" >> $GITHUB_OUTPUT
+              echo "should_build=true" >> $GITHUB_OUTPUT
+            else
+              echo "env_type=none" >> $GITHUB_OUTPUT
+              echo "should_build=false" >> $GITHUB_OUTPUT
+            fi
           fi
 
       - name: init environment file
