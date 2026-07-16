@@ -6,7 +6,6 @@ platform :android do
     env = options[:env]
 
     apk_path = File.expand_path("../../app/build/outputs/apk/#{env}/release/app-#{env}-release.apk", __FILE__)
-    app_id = env == "qa" ? ENV["FIREBASE_APP_ID_QA"] : ENV["FIREBASE_APP_ID_PROD"]
 
     firebase_app_distribution(
       app: ENV["FIREBASE_APP_ID_#{env.upcase}"],
